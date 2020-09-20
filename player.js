@@ -27,8 +27,9 @@
 			let last_index = data.length - 1;
 			let jsonp_str = data.substring(first_index, last_index);
 
-			console.log('Data substring: ' + jsonp_str);
+			console.log('jsonp substring extracted');
 
+            let jsonp_data = JSON.parse(jsonp_str);
 
 		}, "text")
 		.fail(function(jqXHR, textStatus, errorThrown) {
