@@ -19,7 +19,7 @@
 		//TODO: Fetch and parse jsonp, use window.jQuery for that
 
 		//get as text from url:
-		let fetched_text = window.jQuery.get(jsonp_url, function(data){
+		window.jQuery.get(jsonp_url, function(data){
 			console.log('loading text succeeded');
 
 			//get substring resides in __5szm2kaj( ... ): 
