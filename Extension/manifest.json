@@ -1,0 +1,20 @@
+  {
+    "name": "Player",
+    "version": "1.0",
+    "description": "Oracle Guide Player Extension",
+//	"background": {
+//		"scripts": ["background.js"],
+//		"persistent": false
+//   },
+	"content_scripts":[
+    {
+      "matches": [ "https://www.google.com/" ],
+      "js": ["jquery.min.js", "player.js"]
+    }
+  ],
+	"permissions": ["activeTab"],
+	"page_action": {
+		"default_title" : "Oracle Guide"
+	},
+    "manifest_version": 2
+  }
