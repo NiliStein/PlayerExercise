@@ -27,12 +27,29 @@
 			let last_index = data.length - 1;
 			let jsonp_str = data.substring(first_index, last_index);
 
-			console.log('jsonp substring extracted');
-
             let jsonp_data = JSON.parse(jsonp_str);
 			
-			alert('jsonp substring extracted');
-
+			//Inject html and css:
+			let tip_html = jsonp_data.data.tiplates.tip;
+			let hover_tip_html = jsonp_data.data.tiplates.hoverTip;
+			let css_str = jsonp_data.data.css;
+			
+			$("body").append(tip_html);
+			
+			//get elements of the tip:
+			let close_btn = $("button[aria-label='Close']");	
+			let remind_later_btn = $("button[data-iridize-role='laterBt']");
+			let back_btn = $("button[data-iridize-role='prevBt']");
+			let next_link = $("a[data-iridize-role='nextBt']");
+			let step_info = $("span[class='steps-count']");
+			let current_step = step_info.children[0];
+			let total_steps = step_info.children[1];
+			
+			
+			let style = document.createElement('style');
+			style.type = 'text/css';
+			style.innerHTML = css_str;
+			$("head").append(style);			
 
 		}, "text")
 		.fail(function(jqXHR, textStatus, errorThrown) {

@@ -2,19 +2,29 @@
     "name": "Player",
     "version": "1.0",
     "description": "Oracle Guide Player Extension",
-//	"background": {
-//		"scripts": ["background.js"],
-//		"persistent": false
-//   },
+	"background": {
+		"scripts": ["background.js"],
+		"persistent": false
+   },
 	"content_scripts":[
     {
       "matches": [ "https://www.google.com/" ],
       "js": ["jquery.min.js", "player.js"]
     }
   ],
-	"permissions": ["activeTab"],
-	"page_action": {
-		"default_title" : "Oracle Guide"
-	},
+	"permissions": ["declarativeContent", "activeTab"],
+//	"browser_action": {
+//		"default_title" : "Oracle Guide",
+//		"default_popup": "tooltip.html"
+//	},
+//	"commands": {
+//      "_execute_browser_action": {
+//        "suggested_key": {
+//          "default": "Ctrl+Shift+F",
+//          "mac": "MacCtrl+Shift+F"
+//        },
+//        "description": "Opens tooltip.html"
+//      }
+//	},
     "manifest_version": 2
   }
