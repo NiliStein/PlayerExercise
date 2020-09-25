@@ -14,23 +14,5 @@
     }
 	],
 	"permissions": ["declarativeContent", "activeTab"],
-	//"content_security_policy": "default-src 'self'; style-src 'self';", 
-//	"externally_connectable": {
-//		"matches": [ "https://www.google.com/" ]
-//	},
-	
-//	"browser_action": {
-//		"default_title" : "Oracle Guide",
-//		"default_popup": "tooltip.html"
-//	},
-//	"commands": {
-//      "_execute_browser_action": {
-//        "suggested_key": {
-//          "default": "Ctrl+Shift+F",
-//          "mac": "MacCtrl+Shift+F"
-//        },
-//        "description": "Opens tooltip.html"
-//      }
-//	},
     "manifest_version": 2
   }
