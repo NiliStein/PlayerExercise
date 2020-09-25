@@ -9,10 +9,16 @@
 	"content_scripts":[
     {
       "matches": [ "https://www.google.com/" ],
+	  "run_at": "document_start",
       "js": ["jquery.min.js", "player.js"]
     }
-  ],
+	],
 	"permissions": ["declarativeContent", "activeTab"],
+	//"content_security_policy": "default-src 'self'; style-src 'self';", 
+//	"externally_connectable": {
+//		"matches": [ "https://www.google.com/" ]
+//	},
+	
 //	"browser_action": {
 //		"default_title" : "Oracle Guide",
 //		"default_popup": "tooltip.html"
