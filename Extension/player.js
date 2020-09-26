@@ -2,82 +2,6 @@
 //Done this way to have all implementation in internal scope
 (function() {
 	
-	// class ActionData {
-		
-		// /* tip, hoverTip, closeScenario */
-		// constructor(type) {
-			// this.type = type;
-		// }
-		// constructor(content) {
-			// this.contents = content;
-		// }
-		// constructor(role) {
-			// this.roleTexts = role;
-		// }
-		// constructor(placement) {
-			// this.placement = placement;
-		// }
-		// constructor(classes) {
-			// this.classes = classes;
-		// }
-		// constructor(selector) {
-			// this.selector = selector;
-		// }
-		// constructor(value) {
-			// this.stepOrdinal = value;
-		// }
-		// constructor(value) {
-			// this.onlyOneTip = value;
-		// }
-		// constructor(value) {
-			// this.watchSelector = value;
-		// }
-		// constructor(timeout) {
-			// this.warningTimeout = timeout;
-		// }
-		// constructor(time) {
-			// this.exposeType = time;
-		// }
-		// constructor(value) {
-			// this.fixed = value;
-		// }
-		// constructor(value) {
-			// this.watchDog = value;
-		// }
-		// constructor(value) {
-			// this.wdInterval = value;
-		// }
-	// }	
-	
-	// class Followers {
-		// /* boolean: */
-		// constructor(value) {
-			// this.condition = value;
-		// }
-		// /* number: */
-		// constructor(value) {
-			// this.next = value;
-	// } 
-	
-	// class StepInfo {
-		
-		// constructor(value) {
-			// this.route = value;
-		// }
-		// constructor(value) {
-			// this.id = value;
-		// }
-		// constructor(value) {
-			// this.uid = value;
-		// }
-		// constructor(action_data) {
-			// this.action = action_data;
-		// }
-		// constructor(followers) {
-			// this.followers = followers;
-		// }
-	// }
-	
 	class GuideManager {
 		
 		constructor(guide_data) {
@@ -101,8 +25,11 @@
 			if (!('steps' in this.structure)) {
 				throw "steps property is missing in structure"
 			}
-			this.steps = this.structure.steps;
-			this.current_step_index = 0;
+			this.steps = this.structure.steps;			
+			if(!("oracle_guide_step_index" in localStorage)) {
+				localStorage["oracle_guide_step_index"] = 0;
+			}
+			this.max_step_reached = -1;  
 		}
 			
 		static get oracle_guide_url() {
@@ -118,11 +45,112 @@
 			return div_start + div_end;			
 		}
 		
+		get current_step_index() {
+			return parseInt(localStorage["oracle_guide_step_index"]);
+		}
+		
+		set current_step_index(new_current_step_index) {
+			localStorage["oracle_guide_step_index"] = new_current_step_index
+		}
+		
+		get step_url() {
+			return localStorage["oracle_guide_url_" + this.current_step_index]
+		}
+		
+		set step_url(new_url) {
+			localStorage["oracle_guide_url_" + this.current_step_index] = new_url;
+		}
+		
 		/* injects css to the page */
 		inject_style() {
 			let style_element = document.createElement('style');
 			style_element.innerHTML = this.style;
 			$("head").append(style_element);
+		}
+				
+		/* handle next button click. TODO: Complete */
+		next(event) {
+												
+			this.step_url = window.location.href
+
+			//increment step index:
+			if(this.current_step_index < this.steps.length - 1) {
+				this.current_step_index = this.current_step_index + 1;
+			}
+			
+			//remove old tip and place new one:
+			let injected_tip = $("#__injected_tip__");
+			injected_tip.remove();
+			
+			this.inject_tip();
+			this.setup_click_handlers();
+			this.set_tip_information();
+			
+			if(this.current_step_index > this.max_step_reached) {
+				this.max_step_reached = this.current_step_index;
+			}
+		}
+		
+		/* handle back button click. TODO: Complete */
+		back() {
+			//decrement step index:
+			if(this.current_step_index > 0) {
+				this.current_step_index = this.current_step_index - 1;;
+			}
+			
+			// Check if we need to redirect the page
+			if(this.step_url && this.step_url != window.location.href) {
+				window.location.href = this.step_url;
+			}
+			else {
+				//remove old tip and place new one:
+				let injected_tip = $("#__injected_tip__");
+				injected_tip.remove();
+				
+				this.inject_tip();
+				this.setup_click_handlers();
+				this.set_tip_information();		
+			}
+		}
+		
+		/* handle remind later button click. TODO: Complete */
+		remindLater() {
+			alert("remindLater clicked");
+		}
+		
+		/* handle close button click. TODO: Complete */
+		close() {
+			//remove the tip:
+			let injected_tip = $("#__injected_tip__");
+			injected_tip.remove();
+		}
+
+		setup_click_handlers(){
+			let close_btn = $("button[aria-label='Close']");	
+			let remind_later_btn = $("button[data-iridize-role='laterBt']");
+			let back_btn = $("button[data-iridize-role='prevBt']");
+			let next_link = $("a[data-iridize-role='nextBt']");
+			
+			//set on click functions:
+			//binding handlers to have access to this (GuideManager) object
+			close_btn.click(this.close.bind(this));
+			remind_later_btn.click(this.remindLater.bind(this));					
+			back_btn.click(this.back.bind(this));					
+			next_link.click(this.next.bind(this));
+		}
+		
+		/* Fixes "a" element href's domain */ 
+		fix_a_href(selector) {
+			let target_element = $(selector).get(0);
+			if(target_element.tagName == "A") {
+				if(target_element.href != "") {
+					// Make sure the link of the a element will be in the same domain		
+					let target_url = target_element.href;
+					let url_object = new URL(target_url);
+					url_object.host = window.location.host;
+					target_element.href = url_object.toString();
+				}
+			}
 		}
 		
 		/* injects and wraps tip html with necessary div element into the page */
@@ -143,74 +171,26 @@
 									,"panel-container", "__panel_container__")
 								   ,"sttip", "__injected_tip__");	//outer div had id = '__injected_tip__'
 			$(current_step.action.selector).parent().append(wrapped_tip_html);
-		}
-		
-		update_tip() {
-			let current_step = this.steps[this.current_step_index];
-			let current_placement = current_step.action.placement;
-			let tip_class = ["tooltip", "in", current_placement, current_step.action.classes].join(" ");
 			
-			$("#__tip_class__").attr('class', tip_class);
-		}
-		
-		/* handle next button click. TODO: Complete */
-		next() {
-			//increment step index:
-			if(this.current_step_index < this.steps.length - 1) {
-				this.current_step_index++;
+			//set content:
+			let content = current_step.action.contents["#content"];
+			$("div[data-iridize-id='content']").append(content);
+			
+			
+			//set next (if exists):
+			if('next' in current_step) {
+				let next_selector = current_step.next.selector;
+				let next_event = current_step.next.event;
+			
+				this.fix_a_href(next_selector);
+				
+				if(next_event == "click" && this.current_step_index > this.max_step_reached) {
+					//bind next click event to the selector:
+					$(next_selector).click(this.next.bind(this));
+				}
 			}
-			
-			//remove old tip and place new one:
-			let injected_tip = $("#__injected_tip__");
-			injected_tip.remove();
-			
-			this.inject_tip();
-			this.setup_click_handlers();
-			this.set_tip_information();
-			
-		}
-		
-		/* handle back button click. TODO: Complete */
-		back() {
-			//decrement step index:
-			if(this.current_step_index > 0) {
-				this.current_step_index--;
-			}
-			
-			//remove old tip and place new one:
-			let injected_tip = $("#__injected_tip__");
-			injected_tip.remove();
-			
-			this.inject_tip();
-			this.setup_click_handlers();
-			this.set_tip_information();		
-		}
-		
-		/* handle remind later button click. TODO: Complete */
-		remindLater() {
-			alert("remindLater clicked");
-		}
-		
-		/* handle close button click. TODO: Complete */
-		close() {
-			alert("close clicked");
 		}
 
-		
-		setup_click_handlers(){
-			let close_btn = $("button[aria-label='Close']");	
-			let remind_later_btn = $("button[data-iridize-role='laterBt']");
-			let back_btn = $("button[data-iridize-role='prevBt']");
-			let next_link = $("a[data-iridize-role='nextBt']");
-			
-			//set on click functions:
-			//binding handlers to have access to this (GuideManager) object
-			close_btn.click(this.close.bind(this));
-			remind_later_btn.click(this.remindLater.bind(this));					
-			back_btn.click(this.back.bind(this));					
-			next_link.click(this.next.bind(this));
-		}
-		
 		/* TODO: complete */
 		set_tip_information() {
 			let step_info = $("span[class='steps-count']");
@@ -227,14 +207,18 @@
 			this.inject_tip();
 			this.setup_click_handlers();
 			this.set_tip_information();
+			this.max_step_reached = this.current_step_index;
 		}
 	}
 
 	function main() {
 		let current_url = window.location.href;
+		let google_com_url = 'https://www.google.com/';
+		let google_il_url = 'https://www.google.co.il/';
 		
-		if (current_url != 'https://www.google.com/'){
-			throw 'Can only be run on https://www.google.com/'
+		if (current_url.substring(0, google_com_url.length) != google_com_url
+			&& current_url.substring(0, google_il_url.length) != google_il_url){
+			throw "Can only be run on https://www.google.com/..." + "or  https://www.google.co.il/..."
 		}
 		
 		//get as text from url:

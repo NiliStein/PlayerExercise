@@ -4,7 +4,7 @@
     "description": "Oracle Guide Player Extension",
 	"content_scripts":[
     {
-      "matches": [ "https://www.google.com/" ],
+      "matches": [ "https://www.google.com/*" ],
 	  "run_at": "document_start",
       "js": ["jquery.min.js", "player.js"]
     }
