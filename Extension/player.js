@@ -181,10 +181,9 @@
 			if('next' in current_step) {
 				let next_selector = current_step.next.selector;
 				let next_event = current_step.next.event;
-			
-				this.fix_a_href(next_selector);
-				
+							
 				if(next_event == "click" && this.current_step_index > this.max_step_reached) {
+					this.fix_a_href(next_selector);
 					//bind next click event to the selector:
 					$(next_selector).click(this.next.bind(this));
 				}
