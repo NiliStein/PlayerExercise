@@ -2,6 +2,82 @@
 //Done this way to have all implementation in internal scope
 (function() {
 	
+	// class ActionData {
+		
+		// /* tip, hoverTip, closeScenario */
+		// constructor(type) {
+			// this.type = type;
+		// }
+		// constructor(content) {
+			// this.contents = content;
+		// }
+		// constructor(role) {
+			// this.roleTexts = role;
+		// }
+		// constructor(placement) {
+			// this.placement = placement;
+		// }
+		// constructor(classes) {
+			// this.classes = classes;
+		// }
+		// constructor(selector) {
+			// this.selector = selector;
+		// }
+		// constructor(value) {
+			// this.stepOrdinal = value;
+		// }
+		// constructor(value) {
+			// this.onlyOneTip = value;
+		// }
+		// constructor(value) {
+			// this.watchSelector = value;
+		// }
+		// constructor(timeout) {
+			// this.warningTimeout = timeout;
+		// }
+		// constructor(time) {
+			// this.exposeType = time;
+		// }
+		// constructor(value) {
+			// this.fixed = value;
+		// }
+		// constructor(value) {
+			// this.watchDog = value;
+		// }
+		// constructor(value) {
+			// this.wdInterval = value;
+		// }
+	// }	
+	
+	// class Followers {
+		// /* boolean: */
+		// constructor(value) {
+			// this.condition = value;
+		// }
+		// /* number: */
+		// constructor(value) {
+			// this.next = value;
+	// } 
+	
+	// class StepInfo {
+		
+		// constructor(value) {
+			// this.route = value;
+		// }
+		// constructor(value) {
+			// this.id = value;
+		// }
+		// constructor(value) {
+			// this.uid = value;
+		// }
+		// constructor(action_data) {
+			// this.action = action_data;
+		// }
+		// constructor(followers) {
+			// this.followers = followers;
+		// }
+	// }
+	
 	class GuideManager {
 		
 		constructor(guide_data) {
@@ -26,15 +102,20 @@
 				throw "steps property is missing in structure"
 			}
 			this.steps = this.structure.steps;
-			this.current_step = 0;
+			this.current_step_index = 0;
 		}
 			
 		static get oracle_guide_url() {
 			return 'https://guidedlearning.oracle.com/player/latest/api/scenario/get/v_IlPvRLRWObwLnV5sTOaw/5szm2kaj/?callback=__5szm2kaj&amp;refresh=true&amp;env=dev&amp;type=startPanel&amp;vars%5Btype%5D=startPanel&amp;sid=none&amp;_=1582203987867';
 		}
 		
-		static wrap_with_div(html_data, div_class) {
-			return "<div class='" + div_class + "'>" + html_data + "</div>";
+		static wrap_with_div(html_data, div_class, id) {
+			let div_start = "<div ";
+			let div_end = "class='" + div_class + "'>" + html_data + "</div>";
+			if(id) {
+				div_start = div_start + "id='" + id + "' ";
+			}
+			return div_start + div_end;			
 		}
 		
 		/* injects css to the page */
@@ -49,7 +130,7 @@
 		/* TODO: Check what additional modifications are needed for the style */
 		
 		inject_tip() {
-			let current_step = this.steps[this.current_step];
+			let current_step = this.steps[this.current_step_index];
 			let current_placement = current_step.action.placement;
 			let tip_html = this.tiplates.tip;
 		
@@ -58,20 +139,51 @@
 			
 			let wrapped_tip_html = GuideManager.wrap_with_div(
 								    GuideManager.wrap_with_div(
-									 GuideManager.wrap_with_div(tip_html, tip_class)
-									,"panel-container")
-								   ,"sttip");		
+									 GuideManager.wrap_with_div(tip_html, tip_class, "__tip_class__") //undescore chars for distinct id
+									,"panel-container", "__panel_container__")
+								   ,"sttip", "__injected_tip__");	//outer div had id = '__injected_tip__'
 			$(current_step.action.selector).parent().append(wrapped_tip_html);
 		}
-				
+		
+		update_tip() {
+			let current_step = this.steps[this.current_step_index];
+			let current_placement = current_step.action.placement;
+			let tip_class = ["tooltip", "in", current_placement, current_step.action.classes].join(" ");
+			
+			$("#__tip_class__").attr('class', tip_class);
+		}
+		
 		/* handle next button click. TODO: Complete */
 		next() {
-			alert("next clicked");
+			//increment step index:
+			if(this.current_step_index < this.steps.length - 1) {
+				this.current_step_index++;
+			}
+			
+			//remove old tip and place new one:
+			let injected_tip = $("#__injected_tip__");
+			injected_tip.remove();
+			
+			this.inject_tip();
+			this.setup_click_handlers();
+			this.set_tip_information();
+			
 		}
 		
 		/* handle back button click. TODO: Complete */
 		back() {
-			alert("back clicked");
+			//decrement step index:
+			if(this.current_step_index > 0) {
+				this.current_step_index--;
+			}
+			
+			//remove old tip and place new one:
+			let injected_tip = $("#__injected_tip__");
+			injected_tip.remove();
+			
+			this.inject_tip();
+			this.setup_click_handlers();
+			this.set_tip_information();		
 		}
 		
 		/* handle remind later button click. TODO: Complete */
@@ -101,6 +213,12 @@
 		
 		/* TODO: complete */
 		set_tip_information() {
+			let step_info = $("span[class='steps-count']");
+			let current_step_number = step_info.children()[0];
+			let total_steps = step_info.children()[1];
+			
+			current_step_number.textContent = this.steps[this.current_step_index].action.stepOrdinal + "";
+			total_steps.textContent = this.steps.length + " ";
 		}
 		
 		/* Run the guide */
@@ -123,10 +241,6 @@
 		$.get(GuideManager.oracle_guide_url, function(data){
 			console.log('loading text succeeded');
 			
-			function wrap_with_div(html_data, div_class) {
-				return "<div class='" + div_class + "'>" + html_data + "</div>";
-			}
-
 			//get substring resides in __5szm2kaj( ... ): 
 			let first_index = "__5szm2kaj(".length;
 			let last_index = data.length - 1;
