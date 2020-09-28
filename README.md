@@ -56,8 +56,13 @@ The script can either be run with Google Chrome DevTools or by using the extensi
 C. TESTS
 
 To run the tests:
-	1. Copy the content of jquery.min.js to a new snippet, and then copy the content of tests.js below.
-	2. Run the snippet.
+	1. Run the guide as instructed.
+	2. Copy the content of tests.js to a new snippet.
+	3. Run the snippent after every step load.
+	
+NOTE:
+	The tests are basic and assume that localStorage data is correct.
+	The tests do not trigger user actions.
 
 ***
 
