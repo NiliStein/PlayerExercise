@@ -68,16 +68,7 @@
 			$("head").append(style_element);
 		}
 				
-		/* handle next button click. TODO: Complete */
-		next(event) {
-												
-			this.step_url = window.location.href
-
-			//increment step index:
-			if(this.current_step_index < this.steps.length - 1) {
-				this.current_step_index = this.current_step_index + 1;
-			}
-			
+		update_guide() {
 			//remove old tip and place new one:
 			let injected_tip = $("#__injected_tip__");
 			injected_tip.remove();
@@ -90,8 +81,28 @@
 				this.max_step_reached = this.current_step_index;
 			}
 		}
+						
+		next_without_guide_update(event, is_submit) {
+			this.step_url = window.location.href
+
+			//increment step index:
+			if(this.current_step_index < this.steps.length - 1) {
+				this.current_step_index = this.current_step_index + 1;
+			}
+			
+			let target_element = event.target;
+			if(is_submit && target_element.tagName == "INPUT" && target_element.form) {
+				target_element.form.submit();
+			}
+		}
 		
-		/* handle back button click. TODO: Complete */
+		/* handle next guide operation */
+		next(event) {		
+			this.next_without_guide_update(event);
+			this.update_guide();
+		}
+		
+		/* handle back guide operation */
 		back() {
 			//decrement step index:
 			if(this.current_step_index > 0) {
@@ -123,6 +134,12 @@
 			//remove the tip:
 			let injected_tip = $("#__injected_tip__");
 			injected_tip.remove();
+		}
+		
+		input_event_handler(event) {
+			if (event.key === 'Enter' || event.keyCode === 13) {
+				this.next(event);
+			}
 		}
 
 		setup_click_handlers(){
@@ -170,54 +187,83 @@
 									 GuideManager.wrap_with_div(tip_html, tip_class, "__tip_class__") //undescore chars for distinct id
 									,"panel-container", "__panel_container__")
 								   ,"sttip", "__injected_tip__");	//outer div had id = '__injected_tip__'
-			$(current_step.action.selector).parent().append(wrapped_tip_html);
-			
-			//set content:
-			let content = current_step.action.contents["#content"];
-			$("div[data-iridize-id='content']").append(content);
-			
-			
+								   
+			// The selector in step with id 5 doesn't exist in the page(?). Used another one as a workaround.
+			if (current_step.action.selector == "input[value=\"Google Search\"]") {
+				current_step.action.selector = "button[aria-label=\"Google Search\"]";
+			}
+		   
+								   
+			$(current_step.action.selector).after(wrapped_tip_html);
+						
 			//set next (if exists):
 			if('next' in current_step) {
 				let next_selector = current_step.next.selector;
-				let next_event = current_step.next.event;
-							
+				let next_event = current_step.next.event;	
 				if(next_event == "click" && this.current_step_index > this.max_step_reached) {
 					this.fix_a_href(next_selector);
 					//bind next click event to the selector:
-					$(next_selector).click(this.next.bind(this));
+					$(next_selector).click(this.next_without_guide_update.bind(this));
+				}
+			}
+			
+			// if selector is of type "input", handle it:
+			// NOTE: The json file doesn't have other inticators, so we assume in such a case that when we have "input" tag
+			// we will listen to submit event 
+			let selector_element = $(current_step.action.selector).get(0);
+			if(selector_element) {
+				if(selector_element.tagName == "INPUT") {
+					$(current_step.action.selector).on("keyup", this.input_event_handler.bind(this));
+				}
+				//for step 4:
+				else if(selector_element.tagName == "BUTTON" && selector_element.form) {
+					selector_element.addEventListener("click", this.next_without_guide_update.bind(this));
 				}
 			}
 		}
 
-		/* TODO: complete */
 		set_tip_information() {
 			let step_info = $("span[class='steps-count']");
 			let current_step_number = step_info.children()[0];
 			let total_steps = step_info.children()[1];
 			
-			current_step_number.textContent = this.steps[this.current_step_index].action.stepOrdinal + "";
+			current_step_number.textContent = (this.current_step_index + 1);
 			total_steps.textContent = this.steps.length + " ";
+			
+			//set content:
+			let current_step = this.steps[this.current_step_index];
+			let content = current_step.action.contents["#content"];
+			$("div[data-iridize-id='content']").append(content);
+			
+			// Change role content
+			for(let button_type in current_step.action.roleTexts) {
+				$("a[data-iridize-role='" + button_type + "']").text(current_step.action.roleTexts[button_type]);
+			}
+
+		}
+		
+		need_to_show_tip() {
+			let current_step = this.steps[this.current_step_index];
+			return current_step.action.type == "tip";
 		}
 		
 		/* Run the guide */
 		run() {
-			this.inject_style();
-			this.inject_tip();
-			this.setup_click_handlers();
-			this.set_tip_information();
-			this.max_step_reached = this.current_step_index;
+			if(this.need_to_show_tip()) {
+				this.inject_style();
+				this.inject_tip();
+				this.setup_click_handlers();
+				this.set_tip_information();
+				this.max_step_reached = this.current_step_index;
+			}			
 		}
 	}
 
 	function main() {
 		let current_url = window.location.href;
 		let google_com_url = 'https://www.google.com/';
-		let google_il_url = 'https://www.google.co.il/';
-		
-		if (current_url.substring(0, google_com_url.length) != google_com_url
-			&& current_url.substring(0, google_il_url.length) != google_il_url){
-			throw "Can only be run on https://www.google.com/..." + "or  https://www.google.co.il/..."
+		if (current_url.substring(0, google_com_url.length) != google_com_url){
+			throw "Can only be run on https://www.google.com/...";
 		}
 		
 		//get as text from url:
