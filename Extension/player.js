@@ -73,9 +73,11 @@
 			let injected_tip = $("#__injected_tip__");
 			injected_tip.remove();
 			
-			this.inject_tip();
-			this.setup_click_handlers();
-			this.set_tip_information();
+			if(this.need_to_show_tip()) {
+				this.inject_tip();
+				this.setup_click_handlers();
+				this.set_tip_information();
+			}
 			
 			if(this.current_step_index > this.max_step_reached) {
 				this.max_step_reached = this.current_step_index;

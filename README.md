@@ -4,7 +4,8 @@ Player exercise given by Oracle
 Table of contents:
 A. CONTENT
 B. INSTRUCTIONS
-C. OPEN ISSUES
+C. TESTS
+D. OPEN ISSUES
 
 **********
 
@@ -15,6 +16,8 @@ The package includes:
 	- manifest.json
 	- jquery.min.js
 	- player.js
+
+***
 
 B. INSTRUCTIONS:
 The script can either be run with Google Chrome DevTools or by using the extension.
@@ -48,7 +51,17 @@ The script can either be run with Google Chrome DevTools or by using the extensi
 	*	delete localStorage["oracle_guide_step_index"]
 	* and then refresh the page.
 
-C. OPEN ISSUES:
+***
+
+C. TESTS
+
+To run the tests:
+	1. Copy the content of jquery.min.js to a new snippet, and then copy the content of tests.js below.
+	2. Run the snippet.
+
+***
+
+D. OPEN ISSUES:
 1.	The script runs on google.com only, but in other local regions (Israel, in our case), Images link redirects to google.co.il.
 	To overcome this, instead of allowing the script to run on any domain of google, I've programatically changed the host of the
 	"Images" 'a' href to google.com.
