@@ -12,6 +12,7 @@ D. OPEN ISSUES
 A. CONTENT:
 The package includes:
 - README file
+- tests.js
 - Extension directory, containing:
 	- manifest.json
 	- jquery.min.js
