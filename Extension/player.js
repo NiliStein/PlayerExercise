@@ -82,18 +82,13 @@
 			}
 		}
 						
-		next_without_guide_update(event, is_submit) {
+		next_without_guide_update(event) {
 			this.step_url = window.location.href
 
 			//increment step index:
 			if(this.current_step_index < this.steps.length - 1) {
 				this.current_step_index = this.current_step_index + 1;
-			}
-			
-			let target_element = event.target;
-			if(is_submit && target_element.tagName == "INPUT" && target_element.form) {
-				target_element.form.submit();
-			}
+			}			
 		}
 		
 		/* handle next guide operation */
@@ -126,7 +121,10 @@
 		
 		/* handle remind later button click. TODO: Complete */
 		remindLater() {
-			alert("remindLater clicked");
+			let injected_tip = $("#__injected_tip__");
+			injected_tip.remove();
+			let current_step = this.steps[this.current_step_index];
+			setTimeout(this.restore_tip.bind(this), current_step.action.warningTimeout);
 		}
 		
 		/* handle close button click. TODO: Complete */
@@ -215,9 +213,9 @@
 				if(selector_element.tagName == "INPUT") {
 					$(current_step.action.selector).on("keyup", this.input_event_handler.bind(this));
 				}
-				//for step 4:
+				//TODO - This is for step 4. Currently the event handler doesn't fire
 				else if(selector_element.tagName == "BUTTON" && selector_element.form) {
-					selector_element.addEventListener("click", this.next_without_guide_update.bind(this));
+					 $(current_step.action.selector).click(this.next_without_guide_update.bind(this));
 				}
 			}
 		}
@@ -247,6 +245,14 @@
 			return current_step.action.type == "tip";
 		}
 		
+		restore_tip() {
+			if(this.need_to_show_tip()) {
+				this.inject_tip();
+				this.setup_click_handlers();
+				this.set_tip_information();
+			}
+		}
+		
 		/* Run the guide */
 		run() {
 			if(this.need_to_show_tip()) {
@@ -265,7 +271,7 @@
 		if (current_url.substring(0, google_com_url.length) != google_com_url){
 			throw "Can only be run on https://www.google.com/...";
 		}
-		
+				
 		//get as text from url:
 		$.get(GuideManager.oracle_guide_url, function(data){
 			console.log('loading text succeeded');
