@@ -30,6 +30,12 @@ B. INSTRUCTIONS:
 
 The script can either be run with Google Chrome DevTools or by using the extension.
 
+0. BEFORE YOU RUN IT:
+
+Access-Control-Allow-Origin header should be changed.
+
+Chrome extension that handles it: https://mybrowseraddon.com/access-control-allow-origin.html
+
 1. Using the extension:
 	
 	1.0. Download the package to your path of choice.
